@@ -2500,8 +2500,16 @@ inline size_t from_chars_first(csubstr buf, bool * C4_RESTRICT v) noexcept
 //-----------------------------------------------------------------------------
 // single-char implementation
 
+/** @cond dev */
+// on some platforms, char is not distinct from (u)int8_t
+// and thus would conflict with the generic versions above
+#define _C4_IF_NOT_FIXED_LENGTH(T, ty) C4_ALWAYS_INLINE typename std::enable_if<std::is_same<char, T>::value && !is_fixed_length<char>::value, ty>
+/** @endcond*/
+
 /** @ingroup doc_to_chars */
-inline size_t to_chars(substr buf, char v) noexcept
+template <class T>
+_C4_IF_NOT_FIXED_LENGTH(T, size_t)::type
+to_chars(substr buf, T v) noexcept
 {
     if(buf.len > 0)
     {
@@ -2515,7 +2523,9 @@ inline size_t to_chars(substr buf, char v) noexcept
  * @note to extract a string instead and not just a single character, use the csubstr overload
  * @ingroup doc_from_chars
  * */
-inline bool from_chars(csubstr buf, char * C4_RESTRICT v) noexcept
+template <class T>
+_C4_IF_NOT_FIXED_LENGTH(T, bool)::type
+from_chars(csubstr buf, T * C4_RESTRICT v) noexcept
 {
     if(buf.len != 1)
         return false;
@@ -2525,13 +2535,17 @@ inline bool from_chars(csubstr buf, char * C4_RESTRICT v) noexcept
 }
 
 /** @ingroup doc_from_chars_first */
-inline size_t from_chars_first(csubstr buf, char * C4_RESTRICT v) noexcept
+template <class T>
+_C4_IF_NOT_FIXED_LENGTH(T, size_t)::type
+from_chars_first(csubstr buf, T * C4_RESTRICT v) noexcept
 {
     if(buf.len < 1)
         return csubstr::npos;
     *v = buf.str[0];
     return 1;
 }
+
+#undef _C4_IF_NOT_FIXED_LENGTH
 
 
 //-----------------------------------------------------------------------------

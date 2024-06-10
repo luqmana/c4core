@@ -27,7 +27,6 @@ namespace archetypes {
 
 template< class T > void check_archetype(T const& a) { a.check(); }
 template< class T > void check_archetype(T const& a, T const& ref) { a.check(ref); }
-inline void check_archetype(char    ) {}
 inline void check_archetype(wchar_t ) {}
 inline void check_archetype(int8_t  ) {}
 inline void check_archetype(uint8_t ) {}
@@ -39,7 +38,6 @@ inline void check_archetype(int64_t ) {}
 inline void check_archetype(uint64_t) {}
 inline void check_archetype(float   ) {}
 inline void check_archetype(double  ) {}
-inline void check_archetype(char     a, char     ref) { CHECK_EQ(a, ref); }
 inline void check_archetype(wchar_t  a, wchar_t  ref) { CHECK_EQ(a, ref); }
 inline void check_archetype(int8_t   a, int8_t   ref) { CHECK_EQ(a, ref); }
 inline void check_archetype(uint8_t  a, uint8_t  ref) { CHECK_EQ(a, ref); }
@@ -52,6 +50,14 @@ inline void check_archetype(uint64_t a, uint64_t ref) { CHECK_EQ(a, ref); }
 inline void check_archetype(float    a, float    ref) { CHECK_EQ((double)a, doctest::Approx((double)ref)); }
 inline void check_archetype(double   a, double   ref) { CHECK_EQ(a, doctest::Approx(ref)); }
 
+// on some platforms, char is not distinct from (u)int8_t
+// and thus would conflict with the defintions above
+#define _C4_IF_CHAR_DISTINCT inline typename std::enable_if<std::is_same<char, T>::value && !std::is_same<char, int8_t>::value && !std::is_same<char, uint8_t>::value>::type
+
+template <class T> _C4_IF_CHAR_DISTINCT check_archetype(T) {}
+template <class T> _C4_IF_CHAR_DISTINCT check_archetype(T a, T ref) { CHECK_EQ(a, ref); }
+
+#undef _C4_IF_CHAR_DISTINCT
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
